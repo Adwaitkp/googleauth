@@ -10,7 +10,11 @@ type User = {
   createdAt: string;
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const apiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://googleauth-kpae.onrender.com"
+    : "http://localhost:5000");
 
 export default function AuthPage() {
   const [user, setUser] = useState<User | null>(null);
