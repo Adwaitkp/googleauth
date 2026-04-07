@@ -13,14 +13,11 @@ const authRoutes = require("./routes/auth");
 const app = express();
 const port = process.env.PORT || 5000;
 
-const allowedOrigins = (process.env.FRONTEND_URL || "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-if (process.env.NODE_ENV !== "production") {
-  allowedOrigins.push("http://localhost:3000");
+function normalizeOrigin(origin) {
+  return origin.replace(/\/$/, "");
 }
+
+const allowedOrigin = normalizeOrigin(process.env.FRONTEND_URL || "");
 
 app.use(
   cors({
@@ -29,7 +26,7 @@ app.use(
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
+      if (normalizeOrigin(origin) === allowedOrigin) {
         return callback(null, true);
       }
 
