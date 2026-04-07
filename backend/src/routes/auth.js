@@ -6,6 +6,10 @@ const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
+function frontendBaseUrl() {
+  return (process.env.FRONTEND_URL || "").replace(/\/$/, "");
+}
+
 function cookieOptions() {
   const isProduction = process.env.NODE_ENV === "production";
   return {
@@ -37,13 +41,13 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: `${process.env.FRONTEND_URL}/?error=google_auth_failed`,
+    failureRedirect: `${frontendBaseUrl()}/?error=google_auth_failed`,
     session: false,
   }),
   (req, res) => {
     const token = signJwt(req.user);
     res.cookie("token", token, cookieOptions());
-    return res.redirect(process.env.FRONTEND_URL);
+    return res.redirect(`${frontendBaseUrl()}/dashboard`);
   }
 );
 

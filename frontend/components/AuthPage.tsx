@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type User = {
   name: string;
@@ -11,25 +11,16 @@ type User = {
 };
 
 const apiUrl =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === "production"
+  process.env.NODE_ENV === "production"
     ? "https://googleauth-kpae.onrender.com"
-    : "http://localhost:5000");
+    : "http://localhost:5000";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  const accountCreatedAt = useMemo(() => {
-    if (!user?.createdAt) return "";
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(new Date(user.createdAt));
-  }, [user?.createdAt]);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("theme");
@@ -60,6 +51,7 @@ export default function AuthPage() {
 
         const data = await response.json();
         setUser(data.user);
+        router.replace("/dashboard");
       } catch {
         setError("Unable to reach authentication server.");
       } finally {
@@ -68,7 +60,7 @@ export default function AuthPage() {
     }
 
     getCurrentUser();
-  }, []);
+  }, [router]);
 
   function toggleTheme() {
     const nextTheme = theme === "light" ? "dark" : "light";
@@ -78,27 +70,6 @@ export default function AuthPage() {
 
   function loginWithGoogle() {
     window.location.href = `${apiUrl}/api/auth/google`;
-  }
-
-  async function logout() {
-    try {
-      setLoading(true);
-      const response = await fetch(`${apiUrl}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Logout failed");
-      }
-
-      setUser(null);
-      setError("");
-    } catch {
-      setError("Logout failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   return (
@@ -141,53 +112,9 @@ export default function AuthPage() {
             Loading...
           </p>
         ) : user ? (
-          <div className="space-y-5">
-            <div className="flex items-center gap-4">
-              <Image
-                src={user.profilePicture || "/avatar-placeholder.svg"}
-                alt={user.name}
-                width={96}
-                height={96}
-                className="h-16 w-16 rounded-full object-cover"
-              />
-
-              <div>
-                <h2
-                  className={`text-xl font-semibold ${
-                    theme === "dark" ? "text-slate-100" : "text-slate-900"
-                  }`}
-                >
-                  {user.name}
-                </h2>
-                <p
-                  className={`text-sm ${
-                    theme === "dark" ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  {user.email}
-                </p>
-                <p
-                  className={`text-sm ${
-                    theme === "dark" ? "text-slate-400" : "text-slate-500"
-                  }`}
-                >
-                  Account created: {accountCreatedAt}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={logout}
-              className={`w-full rounded-md px-4 py-2 text-sm font-medium ${
-                theme === "dark"
-                  ? "bg-slate-100 text-slate-900 hover:bg-slate-300"
-                  : "bg-slate-900 text-white hover:bg-slate-700"
-              }`}
-            >
-              Logout
-            </button>
-          </div>
+          <p className={theme === "dark" ? "text-slate-300" : "text-slate-600"}>
+            Redirecting to dashboard...
+          </p>
         ) : (
           <div className="space-y-3">
             <p className={theme === "dark" ? "text-slate-300" : "text-slate-600"}>
